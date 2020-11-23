@@ -94,12 +94,10 @@ class WindowClass(QMainWindow, form_class):
         self.result_consol.setText(result)
 
 
-def find_way(p, O_dist):  # 길찾기 함수 시작
+def find_way(p, dist):  # 길찾기 함수 시작
     print("in find way")
 
     length = len(node.nodeDataRaw)
-
-    dist = O_dist
 
     print(len(dist))
 
@@ -108,6 +106,7 @@ def find_way(p, O_dist):  # 길찾기 함수 시작
 
     min_dist = INF
     d_id = list()
+
     destination_id = -1
 
     p_id = get_id_from_name(p, length)
