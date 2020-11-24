@@ -26,8 +26,6 @@ form_class = uic.loadUiType("mainUI.ui")[0]
 
 # 화면을 띄우는데 사용되는 Class 선언
 class WindowClass(QMainWindow, form_class):
-    dist = list()
-
     def __init__(self):
         super().__init__()
         self.setupUi(self)
@@ -48,6 +46,11 @@ class WindowClass(QMainWindow, form_class):
 
         # 출발지 입력 부분
         self.run_button.clicked.connect(self.get_start_pos)
+
+        self.show()
+
+        self.dist = load_graph_file()
+        print("load complete")
 
     def p_num_Function(self):  # input box 숨기기
         self.p_num = int(self.people_number_lbl.text())
@@ -94,22 +97,14 @@ class WindowClass(QMainWindow, form_class):
         self.result_consol.setText(result)
 
 
-def find_way(p, O_dist):  # 길찾기 함수 시작
+def find_way(p, dist):  # 길찾기 함수 시작
     print("in find way")
 
     length = len(node.nodeDataRaw)
 
-    dist = O_dist
-
-    print(len(dist))
-
-    if len(dist) == 0:
-        dist = load_graph_file()
-
     min_dist = INF
+    dist_arr = list()   #최소거리를 저장
     d_id = list()
-    destination_id = -1
-
     p_id = get_id_from_name(p, length)
 
     if p_id[0] == -1:  # 잘못된 역 이름 Check
@@ -119,16 +114,29 @@ def find_way(p, O_dist):  # 길찾기 함수 시작
         return d_id
 
     for i in range(length):  # 각 출발점으로부터 some station 까지의 거리의 총합이 가장 작은 station 구하기
-        total_dist = 0  # 하나의 역만 구하지 말고 거리순으로 5개정도 구하기(해야할일)
-        for j in p_id:  # count로 5개정도 차면 제일 먼저 들어온 애를 지워라
+        total_dist = 0  # 하나의 역만 구하지 말고 거리순으로 5개정도 구하기
+        for j in p_id:
             total_dist += int(dist[j][i])
-        if total_dist < min_dist:
-            min_dist = total_dist
-            del d_id[:]
-            d_id.append(i)
-        elif total_dist == min_dist:
-            d_id.append(i)
-        # print("i : %d  total_dist : %i  min_dist : %i  dest_id : %d" % (i, total_dist, min_dist, destination_id))
+            print(total_dist)
+            if total_dist < min_dist + 200:     #최소 거리보다 조금 커도 허용
+                if total_dist < min_dist:
+                    min_dist = total_dist
+                    d_id.append(i)
+                    dist_arr.append(total_dist)
+                else:                           #최소거리보다 조금 클 경우 제일마지막에서 2번째에 넣어 준다.
+                    temp = d_id.pop(-1)
+                    d_id.append(i)
+                    d_id.append(temp)
+
+                    temp = dist_arr.pop(-1)
+                    dist_arr.append(total_dist)
+                    dist_arr.append(temp)
+                while len(d_id) > 5 or dist_arr[0] > min_dist + 500:
+                    del d_id[0]
+                    del dist_arr[0]
+
+    print(get_name_from_id(d_id, length))
+    print(dist_arr)
 
     return get_name_from_id(d_id, length)
 
@@ -256,7 +264,7 @@ if __name__ == "__main__":
     myWindow = WindowClass()
 
     # 프로그램 화면을 보여주는 코드
-    myWindow.show()
+    #myWindow.show()
 
     # 프로그램을 이벤트루프로 진입시키는(프로그램을 작동시키는) 코드
     app.exec_()
